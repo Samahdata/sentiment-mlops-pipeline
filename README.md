@@ -4,6 +4,8 @@ End-to-end machine learning project on **IMDB movie reviews**: from NLP preproce
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-API-009688) ![Docker](https://img.shields.io/badge/Docker-containerized-2496ED) ![MLflow](https://img.shields.io/badge/MLflow-2.16-0194E2) ![Grafana](https://img.shields.io/badge/Grafana-dashboards-F46800)
 
+**Live demo:** https://sentiment-api-52723038158.us-central1.run.app/
+
 ## Highlights
 
 - **Compared two approaches** on the full 25,000-review test set: TF-IDF + Logistic Regression (**88% accuracy**) vs. fine-tuned DistilBERT (**89%**). Chose Logistic Regression for deployment: ~1 point lower, but far smaller, faster, cheaper and easier to explain.
