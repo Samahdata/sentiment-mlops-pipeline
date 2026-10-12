@@ -1,0 +1,128 @@
+{
+  "title": "Sentiment Model Versioning & Drift Dashboard",
+  "uid": "a3-sentiment-versioning",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "bargauge",
+      "title": "Dataset size by version",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT version_name, num_samples FROM app.dataset_versions ORDER BY created_at DESC LIMIT 2;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Dataset drift — positive ratio change (%)",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT drift_pct AS \"Positive ratio drift %\" FROM app.drift_metrics WHERE metric_name = 'positive_ratio' ORDER BY recorded_at DESC LIMIT 1;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": -100,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": -30 },
+              { "color": "red", "value": -60 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "gauge",
+      "title": "Dataset drift — avg. review length change (%)",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT drift_pct AS \"Review length drift %\" FROM app.drift_metrics WHERE metric_name = 'avg_review_length' ORDER BY recorded_at DESC LIMIT 1;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": -100,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": -30 },
+              { "color": "red", "value": -60 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "barchart",
+      "title": "Model accuracy & F1 by version",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT version_name, accuracy, f1_score FROM app.model_versions ORDER BY created_at DESC LIMIT 2;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Dataset versions — full detail",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT version_name, num_samples, ROUND(positive_ratio::numeric,3) AS positive_ratio, ROUND(avg_review_length::numeric,1) AS avg_review_length, description, created_at FROM app.dataset_versions ORDER BY created_at DESC;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Model versions — full detail",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 17 },
+      "datasource": { "type": "postgres", "uid": "Postgres" },
+      "targets": [
+        {
+          "rawSql": "SELECT model_name, version_name, trained_on_dataset, ROUND(accuracy::numeric,4) AS accuracy, ROUND(f1_score::numeric,4) AS f1_score, mlflow_run_id, created_at FROM app.model_versions ORDER BY created_at DESC;",
+          "format": "table",
+          "rawQuery": true
+        }
+      ]
+    }
+  ]
+}

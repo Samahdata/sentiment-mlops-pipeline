@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sentiment Analysis — Demo</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 640px;
+    margin: 60px auto;
+    padding: 0 20px;
+    background: #f7f7f8;
+    color: #1a1a1a;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  p.subtitle { color: #666; margin-top: 0; }
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  button {
+    margin-top: 12px;
+    padding: 10px 24px;
+    font-size: 1rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:disabled { background: #93c5fd; cursor: not-allowed; }
+  button:hover:not(:disabled) { background: #1d4ed8; }
+  #result {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 8px;
+    display: none;
+  }
+  #result.positive { background: #dcfce7; border: 1px solid #86efac; }
+  #result.negative { background: #fee2e2; border: 1px solid #fca5a5; }
+  #result .label { font-weight: 600; font-size: 1.1rem; text-transform: capitalize; }
+  #result .confidence { color: #555; font-size: 0.9rem; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <h1>🎬 Movie Review Sentiment Analysis</h1>
+  <p class="subtitle">Logistic Regression + TF-IDF, served via FastAPI + Docker + Cloud Run</p>
+
+  <textarea id="reviewText" placeholder="Type a movie review here, e.g. 'This movie was absolutely terrible.'"></textarea>
+  <br>
+  <button id="predictBtn" onclick="predict()">Predict Sentiment</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function predict() {
+      const text = document.getElementById('reviewText').value.trim();
+      const resultDiv = document.getElementById('result');
+      const btn = document.getElementById('predictBtn');
+
+      if (!text) {
+        alert('Please enter some review text first.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Predicting...';
+      resultDiv.style.display = 'none';
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        resultDiv.className = data.prediction;
+        resultDiv.innerHTML = `
+          <div class="label">${data.prediction === 'positive' ? '😊' : '😞'} ${data.prediction}</div>
+          <div class="confidence">Confidence: ${(data.confidence * 100).toFixed(1)}%</div>
+        `;
+        resultDiv.style.display = 'block';
+      } catch (err) {
+        resultDiv.className = '';
+        resultDiv.innerHTML = `<div style="color:#b91c1c;">Error: ${err.message}</div>`;
+        resultDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Predict Sentiment';
+      }
+    }
+  </script>
+</body>
+</html>
